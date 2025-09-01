@@ -60,16 +60,16 @@ const Timeline = () => {
             const isInSelection = x >= selectionStartPos && x <= selectionEndPos;
 
             if (isInSelection) {
-                ctx.fillStyle = '#ff6b6b'; // 选择区域用红色
+                ctx.fillStyle = '#ef4444'; // 选择区域用红色
             } else {
-                ctx.fillStyle = '#666'; // 非选择区域用灰色
+                ctx.fillStyle = '#9ca3af'; // 非选择区域用灰色
             }
 
             ctx.fillRect(x, y, barWidth - 1, barHeight);
         });
 
         // 绘制选择区域背景
-        ctx.fillStyle = 'rgba(255, 107, 107, 0.1)';
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
         ctx.fillRect(selectionStartPos, 0, selectionEndPos - selectionStartPos, height);
     }, [duration, selectionStart, selectionEnd, isPlaying, playbackPosition, selectionWidth]);
 
@@ -226,73 +226,62 @@ const Timeline = () => {
 
     return (
         <div className="timeline-container">
-            <div className="timeline-header">
+            <div className="timeline-content">
                 <button className="play-button" onClick={togglePlay}>
                     {isPlaying ? '⏸️' : '▶️'}
                 </button>
-                <span className="time-display">
-                    播放位置: {formatTime(isPlaying ? playbackPosition : selectionStart)}
-                </span>
-                <span className="selection-display">
-                    选择区域: {formatTime(isPlaying ? playbackPosition : selectionStart)} - {formatTime(isPlaying ? playbackPosition + selectionWidth : selectionEnd)} (宽度: {Math.round(selectionWidth)}秒)
-                </span>
-                {!isPlaying && (
-                    <span className="help-text">
-                        拖拽红色手柄调整选择区域大小，拖拽中间区域移动位置
-                    </span>
-                )}
-            </div>
 
-            <div className="waveform-container" ref={containerRef}>
-                <canvas
-                    ref={canvasRef}
-                    width={800}
-                    height={80}
-                    onMouseDown={handleMouseDown}
-                    className="waveform-canvas"
-                />
+                <div className="waveform-container" ref={containerRef}>
+                    <canvas
+                        ref={canvasRef}
+                        width={800}
+                        height={80}
+                        onMouseDown={handleMouseDown}
+                        className="waveform-canvas"
+                    />
 
-                {/* 选择区域的拖拽手柄 */}
-                <div
-                    className="selection-handle selection-start"
-                    style={{
-                        left: `${10 + ((isPlaying ? playbackPosition : selectionStart) / duration) * (canvasRef.current?.width || 800)}px`,
-                        display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
-                    }}
-                    onMouseDown={(e) => {
-                        e.stopPropagation();
-                        if (!isPlaying) {
-                            setIsDragging('start');
-                            setDragOffset(0);
-                        }
-                    }}
-                />
-                <div
-                    className="selection-handle selection-end"
-                    style={{
-                        left: `${10 + ((isPlaying ? playbackPosition + selectionWidth : selectionEnd) / duration) * (canvasRef.current?.width || 800)}px`,
-                        display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
-                    }}
-                    onMouseDown={(e) => {
-                        e.stopPropagation();
-                        if (!isPlaying) {
-                            setIsDragging('end');
-                            setDragOffset(0);
-                        }
-                    }}
-                />
+                    {/* 选择区域的拖拽手柄 */}
+                    <div
+                        className="selection-handle selection-start"
+                        style={{
+                            left: `${10 + ((isPlaying ? playbackPosition : selectionStart) / duration) * (canvasRef.current?.width || 800)}px`,
+                            display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
+                        }}
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (!isPlaying) {
+                                setIsDragging('start');
+                                setDragOffset(0);
+                            }
+                        }}
+                    />
+                    <div
+                        className="selection-handle selection-end"
+                        style={{
+                            left: `${10 + ((isPlaying ? playbackPosition + selectionWidth : selectionEnd) / duration) * (canvasRef.current?.width || 800)}px`,
+                            display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
+                        }}
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (!isPlaying) {
+                                setIsDragging('end');
+                                setDragOffset(0);
+                            }
+                        }}
+                    />
 
-                <div className="time-marks">
-                    {timeMarks.map((time, index) => (
-                        <div
-                            key={index}
-                            className="time-mark"
-                            style={{ left: `${(time / duration) * 100}%` }}
-                        >
-                            <div className="time-tick"></div>
-                            <span className="time-label">{formatTime(time)}</span>
-                        </div>
-                    ))}
+                    <div className="time-marks">
+                        {timeMarks.map((time, index) => (
+                            <div
+                                key={index}
+                                className="time-mark"
+                                style={{ left: `${(time / duration) * 100}%` }}
+                            >
+                                <div className="time-tick"></div>
+                                <span className="time-label">{formatTime(time)}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

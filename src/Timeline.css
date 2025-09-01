@@ -1,62 +1,51 @@
 .timeline-container {
-    background: #2a2a2a;
+    background: #f5f5f5;
     padding: 20px;
-    border-radius: 8px;
-    color: white;
-    font-family: Arial, sans-serif;
+    border-radius: 12px;
+    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     max-width: 900px;
     margin: 20px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.timeline-header {
+.timeline-content {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .play-button {
-    background: #4a9eff;
+    background: #6b7280;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
 }
 
 .play-button:hover {
-    background: #3a8eef;
+    background: #4b5563;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.time-display {
-    color: #ccc;
-    font-size: 14px;
-    font-weight: 500;
-}
 
-.selection-display {
-    color: #ff9999;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.help-text {
-    color: #999;
-    font-size: 12px;
-    font-style: italic;
-}
 
 .waveform-container {
     position: relative;
-    background: #1a1a1a;
-    border-radius: 4px;
-    padding: 10px;
+    background: #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    flex: 1;
+    border: 1px solid #d1d5db;
 }
 
 .waveform-canvas {
@@ -81,14 +70,15 @@
 .time-tick {
     width: 1px;
     height: 8px;
-    background: #666;
+    background: #9ca3af;
     margin: 0 auto 4px;
 }
 
 .time-label {
     font-size: 10px;
-    color: #999;
+    color: #6b7280;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 .selection-handle {
@@ -113,7 +103,7 @@
     transform: translateX(-50%);
     width: 2px;
     height: 100%;
-    background: #ff6b6b;
+    background: #ef4444;
 }
 
 .selection-handle::before {
@@ -124,30 +114,30 @@
     transform: translateX(-50%);
     width: 10px;
     height: 10px;
-    background: #ff6b6b;
+    background: #ef4444;
     border-radius: 50%;
     cursor: ew-resize;
     z-index: 11;
     /* 底部圆点使用box-shadow */
-    box-shadow: 0 90px 0 0 #ff6b6b;
+    box-shadow: 0 90px 0 0 #ef4444;
 }
 
 .selection-handle:hover::before {
-    background: #ff4444;
+    background: #dc2626;
 }
 
 .selection-handle:hover::after {
-    background: #ff4444;
+    background: #dc2626;
 }
 
 .selection-start::before,
 .selection-start::after {
-    background: #ff4444;
+    background: #ef4444;
 }
 
 .selection-end::before,
 .selection-end::after {
-    background: #ff4444;
+    background: #ef4444;
 }
 
 .waveform-container:hover .selection-handle {
@@ -165,10 +155,10 @@
 }
 
 .selection-handle:hover::before {
-    background: #ff4444;
-    box-shadow: 0 90px 0 0 #ff4444;
+    background: #dc2626;
+    box-shadow: 0 90px 0 0 #dc2626;
 }
 
 .selection-handle:hover::after {
-    background: #ff4444;
+    background: #dc2626;
 }
