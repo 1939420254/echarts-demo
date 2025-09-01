@@ -3,27 +3,23 @@ import './Timeline.css';
 
 const Timeline = () => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [duration] = useState(300); // 5分钟 = 300秒
-    const [selectionStart, setSelectionStart] = useState(60); // 默认选择范围开始
-    const [selectionEnd, setSelectionEnd] = useState(120); // 默认选择范围结束
-    // 动态计算选择区域宽度
-    const selectionWidth = selectionEnd - selectionStart;
-    const [playbackPosition, setPlaybackPosition] = useState(60); // 播放时框选区域的位置
+    const [duration] = useState(100); // 总时长（秒）
+    const [selectionStart, setSelectionStart] = useState(20);
+    const [selectionEnd, setSelectionEnd] = useState(40);
+    const [playbackPosition, setPlaybackPosition] = useState(20); // 播放时框选区域的位置
     const [isDragging, setIsDragging] = useState(null); // 'start', 'end', 'selection', null
     const [dragOffset, setDragOffset] = useState(0);
+    const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, time: 0, value: 0 });
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const animationRef = useRef(null);
 
-    // 生成固定的波形数据，只在组件初始化时生成一次
+    // 生成波形数据
     const waveformData = useRef(null);
-
     if (!waveformData.current) {
         const points = 200;
         const data = [];
-        // 使用固定的种子来生成一致的波形
         for (let i = 0; i < points; i++) {
-            // 使用数学函数生成更自然的波形，而不是完全随机
             const baseWave = Math.sin(i * 0.1) * 0.3;
             const noise = Math.sin(i * 0.3) * 0.2 + Math.sin(i * 0.7) * 0.1;
             const height = Math.abs(baseWave + noise) + 0.1;
@@ -46,7 +42,7 @@ const Timeline = () => {
 
         // 播放时使用playbackPosition，非播放时使用selectionStart
         const currentSelectionStart = isPlaying ? playbackPosition : selectionStart;
-        const currentSelectionEnd = isPlaying ? playbackPosition + selectionWidth : selectionEnd;
+        const currentSelectionEnd = isPlaying ? playbackPosition + (selectionEnd - selectionStart) : selectionEnd;
 
         const selectionStartPos = (currentSelectionStart / duration) * width;
         const selectionEndPos = (currentSelectionEnd / duration) * width;
@@ -71,13 +67,15 @@ const Timeline = () => {
         // 绘制选择区域背景
         ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
         ctx.fillRect(selectionStartPos, 0, selectionEndPos - selectionStartPos, height);
-    }, [duration, selectionStart, selectionEnd, isPlaying, playbackPosition, selectionWidth]);
+    }, [duration, selectionStart, selectionEnd, isPlaying, playbackPosition]);
 
     // 播放动画 - 移动框选区域
     const animate = useCallback(() => {
         if (isPlaying) {
             setPlaybackPosition(prev => {
-                const nextPos = prev + 0.5; // 每帧移动0.5秒
+                const step = duration * 0.01; // 每帧移动总时间的1%
+                const selectionWidth = selectionEnd - selectionStart;
+                const nextPos = prev + step;
                 // 当到达右侧边界时，重新从左侧开始
                 if (nextPos + selectionWidth >= duration) {
                     return 0; // 重新从最左侧开始
@@ -86,7 +84,7 @@ const Timeline = () => {
             });
             animationRef.current = requestAnimationFrame(animate);
         }
-    }, [isPlaying, selectionWidth, duration]);
+    }, [isPlaying, selectionEnd, selectionStart, duration]);
 
     const togglePlay = () => {
         if (!isPlaying) {
@@ -95,7 +93,7 @@ const Timeline = () => {
         } else {
             // 暂停时，将当前播放位置更新到选择区域
             setSelectionStart(playbackPosition);
-            setSelectionEnd(playbackPosition + selectionWidth);
+            setSelectionEnd(playbackPosition + (selectionEnd - selectionStart));
         }
         setIsPlaying(!isPlaying);
     };
@@ -126,11 +124,13 @@ const Timeline = () => {
 
         if (isDragging === 'start') {
             // 拖拽开始位置，允许自定义宽度
-            const newStart = Math.max(0, Math.min(time, selectionEnd - 1)); // 最小1秒宽度
+            const minWidth = duration * 0.01; // 最小宽度为总时间的1%
+            const newStart = Math.max(0, Math.min(time, selectionEnd - minWidth));
             setSelectionStart(newStart);
         } else if (isDragging === 'end') {
             // 拖拽结束位置，允许自定义宽度
-            const newEnd = Math.max(selectionStart + 1, Math.min(duration, time)); // 最小1秒宽度
+            const minWidth = duration * 0.01;
+            const newEnd = Math.max(selectionStart + minWidth, Math.min(duration, time));
             setSelectionEnd(newEnd);
         } else if (isDragging === 'selection') {
             // 拖拽整个选择区域，保持当前宽度
@@ -139,7 +139,7 @@ const Timeline = () => {
             setSelectionStart(newStart);
             setSelectionEnd(newStart + currentWidth);
         }
-    }, [isDragging, getTimeFromPosition, dragOffset, duration, selectionStart, selectionEnd]);
+    }, [isDragging, getTimeFromPosition, dragOffset, duration, selectionEnd, selectionStart]);
 
     // 鼠标抬起事件
     const handleMouseUp = useCallback(() => {
@@ -147,7 +147,34 @@ const Timeline = () => {
         setDragOffset(0);
     }, []);
 
+    // 鼠标悬浮事件
+    const handleCanvasMouseMove = (e) => {
+        if (isDragging) return; // 拖拽时不显示tooltip
 
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+
+        // 计算当前鼠标位置对应的时间和数值
+        const time = getTimeFromPosition(x);
+        const dataIndex = Math.floor((x / canvas.width) * waveformData.current.length);
+        const value = waveformData.current[dataIndex] || 0;
+
+        setTooltip({
+            visible: true,
+            x: e.clientX,
+            y: e.clientY - 10,
+            time: time.toFixed(1),
+            value: (value * 100).toFixed(1)
+        });
+    };
+
+    // 鼠标离开canvas
+    const handleCanvasMouseLeave = () => {
+        setTooltip({ visible: false, x: 0, y: 0, time: 0, value: 0 });
+    };
 
     // 鼠标按下事件
     const handleMouseDown = (e) => {
@@ -215,7 +242,7 @@ const Timeline = () => {
     // 生成时间刻度
     const generateTimeMarks = () => {
         const marks = [];
-        const interval = 30; // 每30秒一个刻度
+        const interval = Math.max(1, Math.floor(duration / 10)); // 大约10个刻度
         for (let i = 0; i <= duration; i += interval) {
             marks.push(i);
         }
@@ -226,6 +253,28 @@ const Timeline = () => {
 
     return (
         <div className="timeline-container">
+            {/* Tooltip */}
+            {tooltip.visible && (
+                <div 
+                    className="tooltip"
+                    style={{
+                        position: 'fixed',
+                        left: tooltip.x,
+                        top: tooltip.y,
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: 'white',
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        pointerEvents: 'none',
+                        zIndex: 1000,
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    时间: {tooltip.time}s | 数值: {tooltip.value}%
+                </div>
+            )}
+            
             <div className="timeline-content">
                 <button className="play-button" onClick={togglePlay}>
                     {isPlaying ? '⏸️' : '▶️'}
@@ -237,6 +286,8 @@ const Timeline = () => {
                         width={800}
                         height={80}
                         onMouseDown={handleMouseDown}
+                        onMouseMove={handleCanvasMouseMove}
+                        onMouseLeave={handleCanvasMouseLeave}
                         className="waveform-canvas"
                     />
 
@@ -258,7 +309,7 @@ const Timeline = () => {
                     <div
                         className="selection-handle selection-end"
                         style={{
-                            left: `${10 + ((isPlaying ? playbackPosition + selectionWidth : selectionEnd) / duration) * (canvasRef.current?.width || 800)}px`,
+                            left: `${10 + ((isPlaying ? playbackPosition + (selectionEnd - selectionStart) : selectionEnd) / duration) * (canvasRef.current?.width || 800)}px`,
                             display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
                         }}
                         onMouseDown={(e) => {
@@ -289,4 +340,3 @@ const Timeline = () => {
 };
 
 export default Timeline;
-
