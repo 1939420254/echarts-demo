@@ -187,8 +187,13 @@ const Timeline = () => {
         }
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
+    // 强制重新渲染手柄位置
+    const [, forceUpdate] = useState({});
+
     useEffect(() => {
         drawWaveform();
+        // 强制更新手柄位置
+        forceUpdate({});
     }, [drawWaveform]);
 
     useEffect(() => {
@@ -251,15 +256,29 @@ const Timeline = () => {
                 <div
                     className="selection-handle selection-start"
                     style={{
-                        left: `${((isPlaying ? playbackPosition : selectionStart) / duration) * 100}%`,
+                        left: `${10 + ((isPlaying ? playbackPosition : selectionStart) / duration) * (canvasRef.current?.width || 800)}px`,
                         display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
+                    }}
+                    onMouseDown={(e) => {
+                        e.stopPropagation();
+                        if (!isPlaying) {
+                            setIsDragging('start');
+                            setDragOffset(0);
+                        }
                     }}
                 />
                 <div
                     className="selection-handle selection-end"
                     style={{
-                        left: `${((isPlaying ? playbackPosition + selectionWidth : selectionEnd) / duration) * 100}%`,
+                        left: `${10 + ((isPlaying ? playbackPosition + selectionWidth : selectionEnd) / duration) * (canvasRef.current?.width || 800)}px`,
                         display: isPlaying ? 'none' : 'block' // 播放时隐藏拖拽手柄
+                    }}
+                    onMouseDown={(e) => {
+                        e.stopPropagation();
+                        if (!isPlaying) {
+                            setIsDragging('end');
+                            setDragOffset(0);
+                        }
                     }}
                 />
 

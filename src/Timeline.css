@@ -91,39 +91,53 @@
     white-space: nowrap;
 }
 
-. selection-handle {
+.selection-handle {
     position: absolute;
     top: 10px;
-    width: 2px;
+    /* 对齐到canvas顶部，考虑container的padding */
+    width: 12px;
     height: 80px;
-    background: #ff6b6b;
+    /* 与canvas高度一致 */
+    background: transparent;
     cursor: ew-resize;
     z-index: 10;
     transform: translateX(-50%);
+}
+
+/* 添加中间的红线 */
+.selection-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: #ff6b6b;
 }
 
 .selection-handle::before {
     content: '';
     position: absolute;
     top: -5px;
-    left: -4px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 10px;
     height: 10px;
     background: #ff6b6b;
     border-radius: 50%;
     cursor: ew-resize;
+    z-index: 11;
+    /* 底部圆点使用box-shadow */
+    box-shadow: 0 90px 0 0 #ff6b6b;
 }
 
-.selection-handle::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: -4px;
-    width: 10px;
-    height: 10px;
-    background: #ff6b6b;
-    border-radius: 50%;
-    cursor: ew-resize;
+.selection-handle:hover::before {
+    background: #ff4444;
+}
+
+.selection-handle:hover::after {
+    background: #ff4444;
 }
 
 .selection-start::before,
@@ -140,6 +154,7 @@
     opacity: 1;
 }
 
+/* 手柄透明度和悬停效果 */
 .selection-handle {
     opacity: 0.8;
     transition: opacity 0.2s;
@@ -147,5 +162,13 @@
 
 .selection-handle:hover {
     opacity: 1;
+}
+
+.selection-handle:hover::before {
+    background: #ff4444;
+    box-shadow: 0 90px 0 0 #ff4444;
+}
+
+.selection-handle:hover::after {
     background: #ff4444;
 }
